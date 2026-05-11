@@ -1,7 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="1857fa34-5095-4d4f-b044-2c0579fe2e07" name="Changes" comment="">
+    <list default="true" id="1857fa34-5095-4d4f-b044-2c0579fe2e07" name="Changes" comment="volume per nifi">
+      <change afterPath="$PROJECT_DIR$/docker/hdfs/config/core-site.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docker/hdfs/config/hdfs-site.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docker/hdfs/config/log4j.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docker/hdfs/init-datanode.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docker/hdfs/namenode/in_use.lock" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docker/hdfs/start-hdfs.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docker/nifi/Nifi_Templates/template.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docker/nifi/dati_csv/.~lock.202501_T_ONTIME_REPORTING.csv#" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docker/nifi/dati_csv/202501_T_ONTIME_REPORTING.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docker/nifi/dati_csv/202502_T_ONTIME_REPORTING.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docker/nifi/dati_csv/202503_T_ONTIME_REPORTING.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docker/nifi/dati_csv/202504_T_ONTIME_REPORTING.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/SABD_progetto_1_Ercole_Pepe.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/SABD_progetto_1_Ercole_Pepe.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docker/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker/docker-compose.yml" afterDir="false" />
     </list>
@@ -14,24 +31,25 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Dockerfile" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "Ercole19"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Ercole19&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/PepeFederico/SABD_Progetto1_Ercole_Pepe.git",
-    "accountId": "edda5fdd-8113-48b5-bab3-1400c3c8a247"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/PepeFederico/SABD_Progetto1_Ercole_Pepe.git&quot;,
+    &quot;accountId&quot;: &quot;edda5fdd-8113-48b5-bab3-1400c3c8a247&quot;
   }
-}]]></component>
+}</component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
@@ -54,12 +72,26 @@
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "SHELLCHECK.PATH": "I do mind",
     "codeWithMe.voiceChat.enabledByDefault": "false",
     "git-widget-placeholder": "master",
+    "last_opened_file_path": "/home/ercole/PycharmProjects/SABD_Progetto1_Ercole_Pepe/docker/nifi/Nifi_Templates",
     "settings.editor.selected.configurable": "Docker"
   }
 }]]></component>
-  <component name="RunManager" selected="Docker.docker.nifi: Compose Deployment">
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/docker/nifi/Nifi_Templates" />
+      <recent name="$PROJECT_DIR$/docker/nifi/NiFi Flow_files" />
+      <recent name="$PROJECT_DIR$/docker/nifi/nifi_extensions" />
+      <recent name="$PROJECT_DIR$/docker/dati_csv" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/docker/nifi" />
+      <recent name="$PROJECT_DIR$/docker/NiFi Flow_files" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Docker.docker: Compose Deployment">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="SABD_progetto_1_Ercole_Pepe" />
       <option name="ENV_FILES" value="" />
@@ -111,8 +143,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Docker.docker.nifi: Compose Deployment" />
         <item itemvalue="Docker.docker: Compose Deployment" />
+        <item itemvalue="Docker.docker.nifi: Compose Deployment" />
         <item itemvalue="Python.main" />
       </list>
     </recent_temporary>
@@ -132,20 +164,22 @@
       <option name="presentableId" value="Default" />
       <updated>1778325734841</updated>
     </task>
+    <task id="LOCAL-00001" summary="volume per nifi">
+      <option name="closed" value="true" />
+      <created>1778329749980</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1778329749980</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/main.py</url>
-          <line>8</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="volume per nifi" />
+    <option name="LAST_COMMIT_MESSAGE" value="volume per nifi" />
   </component>
 </project>
