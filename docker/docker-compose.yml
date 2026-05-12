@@ -8,6 +8,7 @@ services:
       - SINGLE_USER_CREDENTIALS_USERNAME=admin
       - SINGLE_USER_CREDENTIALS_PASSWORD=qwertyuiopo1
       - NIFI_WEB_PROXY_HOST=localhost:8443,127.0.0.1:8443
+      - NIFI_WEB_PROXY_HOST=nifi:8443
     volumes:
       - ./nifi/dati_csv:/opt/workspace/input_data
       # Fondamentale: NiFi ha bisogno dei file core-site.xml e hdfs-site.xml per trovare il cluster
@@ -20,7 +21,7 @@ services:
       - datanode
 
   namenode:
-    image: apache/hadoop:3.4.1
+    image: apache/hadoop:3.3.5
     container_name: namenode
     hostname: namenode
     user: root
@@ -38,11 +39,10 @@ services:
     command: [ "/bin/bash", "/start-hdfs.sh" ]
     restart: always
     networks:
-      hdfs_network:
-        ipv4_address: 172.30.0.2
+      - hdfs_network
 
   datanode:
-    image: apache/hadoop:3.4.1
+    image: apache/hadoop:3.3.5
     container_name: datanode
     hostname: datanode
     user: root
@@ -59,12 +59,73 @@ services:
     command: [ "/bin/bash", "/init-datanode.sh" ]
     restart: always
     networks:
-      hdfs_network:
-        ipv4_address: 172.30.0.3
+      - hdfs_network
+
+  postgres:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    networks:
+      - hdfs_network
+
+  airflow-webserver:
+    build: .
+    container_name: airflow-webserver
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    user: "1000:0"
+    environment:
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW_UID=1000
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+    ports:
+      - "8080:8080"
+    command: webserver
+    networks:
+      - hdfs_network
+
+  airflow-scheduler:
+    build: .
+    container_name: airflow-scheduler
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    user: "1000:0"
+    environment:
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW_UID=1000
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+    command: scheduler
+    networks:
+      - hdfs_network
+
+  #Serve per inizializzare il database
+  airflow-init:
+    build: .
+    user: "0:0"
+    environment:
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - _AIRFLOW_DB_UPGRADE=true
+      - _AIRFLOW_WWW_USER_CREATE=true
+      - _AIRFLOW_WWW_USER_USERNAME=admin
+      - _AIRFLOW_WWW_USER_PASSWORD=admin
+      - AIRFLOW_UID=1000
+    command: db migrate
+    depends_on:
+      - postgres
+    networks:
+      - hdfs_network
 
 networks:
   hdfs_network:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.30.0.0/24
