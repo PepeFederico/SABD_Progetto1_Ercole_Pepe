@@ -1,0 +1,70 @@
+services:
+  nifi:
+    image: apache/nifi:1.28.0
+    container_name: nifi
+    ports:
+      - "8443:8443"
+    environment:
+      - SINGLE_USER_CREDENTIALS_USERNAME=admin
+      - SINGLE_USER_CREDENTIALS_PASSWORD=qwertyuiopo1
+      - NIFI_WEB_PROXY_HOST=localhost:8443,127.0.0.1:8443
+    volumes:
+      - ./nifi/dati_csv:/opt/workspace/input_data
+      # Fondamentale: NiFi ha bisogno dei file core-site.xml e hdfs-site.xml per trovare il cluster
+      - ./hdfs/config:/opt/hadoop/etc/hadoop:ro
+    networks:
+      - hdfs_network
+    restart: always
+    depends_on:
+      - namenode
+      - datanode
+
+  namenode:
+    image: apache/hadoop:3.4.1
+    container_name: namenode
+    hostname: namenode
+    user: root
+    environment:
+      - HADOOP_HOME=/opt/hadoop
+      - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
+    volumes:
+      - ./hdfs/namenode:/opt/hadoop/data/nameNode
+      - ./hdfs/config:/opt/hadoop/etc/hadoop
+      - ./hdfs/start-hdfs.sh:/start-hdfs.sh
+      - ./hdfs/config/log4j.properties:/opt/hadoop/etc/hadoop/log4j.properties
+    ports:
+      - "9870:9870"
+      - "9000:9000" # Porta RPC per la comunicazione dati
+    command: [ "/bin/bash", "/start-hdfs.sh" ]
+    restart: always
+    networks:
+      hdfs_network:
+        ipv4_address: 172.30.0.2
+
+  datanode:
+    image: apache/hadoop:3.4.1
+    container_name: datanode
+    hostname: datanode
+    user: root
+    environment:
+      - HADOOP_HOME=/opt/hadoop
+      - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
+    volumes:
+      - ./hdfs/datanode:/opt/hadoop/data/dataNode # Corretto percorso locale per coerenza
+      - ./hdfs/config:/opt/hadoop/etc/hadoop      # Usiamo la stessa cartella config del namenode
+      - ./hdfs/init-datanode.sh:/init-datanode.sh
+      - ./hdfs/config/log4j.properties:/opt/hadoop/etc/hadoop/log4j.properties
+    depends_on:
+      - namenode
+    command: [ "/bin/bash", "/init-datanode.sh" ]
+    restart: always
+    networks:
+      hdfs_network:
+        ipv4_address: 172.30.0.3
+
+networks:
+  hdfs_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
