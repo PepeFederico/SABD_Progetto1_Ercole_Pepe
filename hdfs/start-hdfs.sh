@@ -23,6 +23,8 @@ done
 echo "Creazione cartelle..."
 hdfs dfs -mkdir -p /data/nifi_output
 hdfs dfs -chmod 777 /data/nifi_output
+hdfs dfs -mkdir -p /data/processed_data
+hdfs dfs -chmod 777 /data/processed_data
 echo "Setup completato!"
 
 # 5. Riportiamo il processo in foreground per non far spegnere il container
