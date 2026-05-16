@@ -151,6 +151,7 @@ services:
       - HADOOP_USER_NAME=root
     ports:
       - "8080:8080"
+      - "4040:4040"
       - "7077:7077"
     volumes:
       - ./hdfs/config:/opt/spark/conf/hadoop-conf:ro
@@ -159,23 +160,24 @@ services:
       - hdfs_network
 
   spark-worker:
-      image: apache/spark:3.5.1
-      container_name: spark-worker
-      user: root
-      command: /opt/spark/sbin/start-worker.sh spark://spark-master:7077
-      environment:
-        - SPARK_WORKER_CORES=2
-        - SPARK_WORKER_MEMORY=1g
-        - SPARK_NO_DAEMONIZE=true
-        - HADOOP_CONF_DIR=/opt/spark/conf/hadoop-conf
-        - HADOOP_USER_NAME=root
-      depends_on:
-        - spark-master
-      volumes:
-        - ./hdfs/config:/opt/spark/conf/hadoop-conf:ro
-        - ./spark/spark_scripts:/opt/spark/scripts
-      networks:
-        - hdfs_network
+    image: apache/spark:3.5.1
+    user: root
+    command: /opt/spark/sbin/start-worker.sh spark://spark-master:7077
+    environment:
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2g
+      - SPARK_NO_DAEMONIZE=true
+      - HADOOP_CONF_DIR=/opt/spark/conf/hadoop-conf
+      - HADOOP_USER_NAME=root
+    depends_on:
+      - spark-master
+    volumes:
+      - ./hdfs/config:/opt/spark/conf/hadoop-conf:ro
+      - ./spark/spark_scripts:/opt/spark/scripts
+    networks:
+      - hdfs_network
+    deploy:
+      replicas: 3
 
 networks:
   hdfs_network:
