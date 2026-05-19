@@ -1,0 +1,31 @@
+FROM apache/spark:3.5.1
+
+USER root
+
+RUN apt-get update && \
+    apt-get install -y \
+        build-essential \
+        libssl-dev \
+        zlib1g-dev \
+        libncurses5-dev \
+        libffi-dev \
+        libsqlite3-dev \
+        wget \
+        curl && \
+    wget https://www.python.org/ftp/python/3.12.0/Python-3.12.0.tgz && \
+    tar -xzf Python-3.12.0.tgz && \
+    cd Python-3.12.0 && \
+    ./configure --enable-optimizations && \
+    make -j$(nproc) && \
+    make altinstall && \
+    cd .. && rm -rf Python-3.12.0 Python-3.12.0.tgz && \
+    # altinstall mette il binario in /usr/local/bin, non /usr/bin
+    ln -sf /usr/local/bin/python3.12 /usr/bin/python3.12 && \
+    ln -sf /usr/local/bin/python3.12 /usr/bin/python3 && \
+    ln -sf /usr/local/bin/python3.12 /usr/bin/python && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV PYSPARK_PYTHON=/usr/local/bin/python3.12
+ENV PYSPARK_DRIVER_PYTHON=/usr/local/bin/python3.12
+
+USER spark
