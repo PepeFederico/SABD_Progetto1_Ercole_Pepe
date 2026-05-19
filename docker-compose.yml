@@ -69,7 +69,9 @@ services:
       - hdfs_network
 
   airflow-webserver:
-      build: .
+      build:
+        context: .
+        dockerfile: Dockerfile.airflow
       container_name: airflow-webserver
       depends_on:
         airflow-init:
@@ -95,7 +97,10 @@ services:
         - hdfs_network
 
   airflow-scheduler:
-      build: .
+      build:
+        context: .
+        dockerfile: Dockerfile.airflow
+
       container_name: airflow-scheduler
       depends_on:
         airflow-init:
@@ -119,7 +124,9 @@ services:
 
     #Serve per inizializzare il database
   airflow-init:
-      build: .
+      build:
+        context: .
+        dockerfile: Dockerfile.airflow
       user: "1000:0"
       environment:
         - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
@@ -139,7 +146,9 @@ services:
 
 
   spark-master:
-    image: apache/spark:3.5.1
+    build:
+      context: .
+      dockerfile: Dockerfile.spark
     container_name: spark-master
     user: root
     command: /opt/spark/sbin/start-master.sh
@@ -149,6 +158,8 @@ services:
       - SPARK_NO_DAEMONIZE=true
       - HADOOP_CONF_DIR=/opt/spark/conf/hadoop-conf
       - HADOOP_USER_NAME=root
+      - PYSPARK_PYTHON=/usr/bin/python3.12
+      - PYSPARK_DRIVER_PYTHON=/usr/bin/python3.12
     ports:
       - "8080:8080"
       - "4040:4040"
@@ -160,7 +171,9 @@ services:
       - hdfs_network
 
   spark-worker:
-    image: apache/spark:3.5.1
+    build:
+      context: .
+      dockerfile: Dockerfile.spark
     user: root
     command: /opt/spark/sbin/start-worker.sh spark://spark-master:7077
     environment:
@@ -169,6 +182,8 @@ services:
       - SPARK_NO_DAEMONIZE=true
       - HADOOP_CONF_DIR=/opt/spark/conf/hadoop-conf
       - HADOOP_USER_NAME=root
+      - PYSPARK_PYTHON=/usr/bin/python3.12
+      - PYSPARK_DRIVER_PYTHON=/usr/bin/python3.12
     depends_on:
       - spark-master
     volumes:

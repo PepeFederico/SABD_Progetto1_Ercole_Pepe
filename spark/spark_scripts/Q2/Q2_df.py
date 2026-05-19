@@ -13,7 +13,8 @@ logging.basicConfig(
 )
 
 input_path = "hdfs://namenode:9000/data/processed_data"
-output_path = "hdfs://namenode:9000/data/results/q1_output"
+output_path = "hdfs://namenode:9000/data/results/q2_output/df"
+
 
 paths_to_read = [
         os.path.join(input_path, "MONTH=1"),
@@ -28,13 +29,13 @@ if __name__ == "__main__":
 
     # Inizializzazione della Sessione
     spark = SparkSession.builder \
-        .appName("Query_1_AA_DL_Performance") \
+        .appName("Query_2_AA_DL_Performance") \
         .getOrCreate()
 
     # Silenziamo i log di INFO di Spark per vedere chiaramente i nostri log applicativi
     spark.sparkContext.setLogLevel("WARN")
 
-    logging.info("Inizio lettura e processamento Query 1...")
+    logging.info("Inizio lettura e processamento Query 2...")
     all_times = []
 
     # 2. Avvio del cronometro specifico per la query (solo I/O e calcolo)
@@ -45,29 +46,46 @@ if __name__ == "__main__":
         df = spark.read.option("basePath", input_path).parquet(*paths_to_read)
 
         # Filtraggio
-        df_filtered = df.filter(col("OP_UNIQUE_CARRIER").isin("AA", "DL"))
+        df_filtered = df.filter(col("DIVERTED") == 0).filter(col("CANCELLED") == 0)
 
         # Aggregazione
-        q1_result = df_filtered.groupBy("MONTH", "OP_UNIQUE_CARRIER").agg(
-            round(avg(when(col("CANCELLED") == 0, col("DEP_DELAY"))), 2).alias("dep_delay_mean"),
-            round(min(when(col("CANCELLED") == 0, col("DEP_DELAY"))), 2).alias("dep_delay_min"),
-            round(max(when(col("CANCELLED") == 0, col("DEP_DELAY"))), 2).alias("dep_delay_max"),
-            round((sum("CANCELLED") / count("*")) * 100, 2).alias("cancellation_rate")
+        q1_result = df_filtered.groupBy("OP_UNIQUE_CARRIER").agg(
+            count("*").alias("records"),
+            round(avg(col("ARR_DELAY")), 2).alias("arr_delay_mean"),
+            round(avg(col("CARRIER_DELAY")), 2).alias("carrier_delay_mean"),
+            round(avg(col("WEATHER_DELAY")), 2).alias("weather_delay_mean"),
+            round(avg(col("NAS_DELAY")), 2).alias("nas_delay_mean"),
+            round(avg(col("SECURITY_DELAY")), 2).alias("security_delay_mean"),
+            round(avg(col("LATE_AIRCRAFT_DELAY")), 2).alias("late_air_delay_mean"),
         )
 
+        q1_500_filtered = q1_result.filter(col("records") >= 500)
+        q1_100_filtered = q1_500_filtered.orderBy(col("arr_delay_mean").desc()).limit(10)
+
+        final_df = q1_100_filtered.select(
+            col("OP_UNIQUE_CARRIER").alias("Compagnia Aerea"),
+            col("records").alias("Numero di voli"),
+            col("arr_delay_mean").alias("Ritardo Medio Arrivo (min)"),
+            col("carrier_delay_mean").alias("Ritardo Medio Veicolo (min)"),
+            col("weather_delay_mean").alias("Ritardo Medio Meteo (min)"),
+            col("nas_delay_mean").alias("Ritardo Medio Nas (min)"),
+            col("security_delay_mean").alias("Ritardo Medio Sicurezza (min)"),
+            col("late_air_delay_mean").alias("Ritardo Medio dovuto a voluto precedente (min)"),
+        )
+
+
+
         # Ordinamento
-        q1_result = q1_result.orderBy("MONTH", "OP_UNIQUE_CARRIER")
         end_time_before = time.time()
-        logging.info(f"✔ Query 1 calcolata e salvata in HDFS in: {end_time_before - start_time_query:.2f} secondi. (Prima di scrittura CSV)")
 
         # Azione: Scrittura in CSV (Questo scatena l'esecuzione reale!)
         if i == 9:
-            q1_result.coalesce(1) \
+            final_df.coalesce(1) \
                 .write \
                 .mode("overwrite") \
                 .csv(output_path, header=True)
         else:
-            q1_result.coalesce(1) \
+            final_df.coalesce(1) \
                 .write \
                 .format("noop") \
                 .mode("overwrite") \
@@ -75,8 +93,9 @@ if __name__ == "__main__":
 
         # 3. Stop del cronometro specifico
         end_time = time.time()
-        all_times.append(end_time - start_time_query)
-
+        exec_time = end_time - start_time_query
+        all_times.append(exec_time)
+        logging.info(f"Iterazione {i + 1}/10 conclusa in {exec_time:.2f} sec")
 
     avg_time = statistics.mean(all_times)
     logging.info("-" * 50)
@@ -89,13 +108,3 @@ if __name__ == "__main__":
 
 
     spark.stop()
-
-
-
-
-
-
-
-
-
-

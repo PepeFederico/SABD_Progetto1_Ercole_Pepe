@@ -11,7 +11,7 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 with DAG(
-        'first_query',
+        'second_query',
         start_date=datetime(2024, 1, 1),
         schedule_interval=None,
         catchup=False,
@@ -19,17 +19,18 @@ with DAG(
 ) as dag:
 
     run_spark_job_df = SparkSubmitOperator(
-        task_id='query1_df',
-        application='/opt/spark/scripts/Q1/Q1_df.py',
+        task_id='query2_df',
+        application='/opt/spark/scripts/Q2/Q2_df.py',
         conn_id='spark_default',
         conf={'spark.master': 'spark://spark-master:7077'}
     )
 
-    run_spark_job_rdd = SparkSubmitOperator(
-        task_id='query1_rdd',
-        application='/opt/spark/scripts/Q1/Q1_RDD.py',
+    run_spark_job_RDD = SparkSubmitOperator(
+        task_id='query2_RDD',
+        application='/opt/spark/scripts/Q2/Q2_RDD.py',
         conn_id='spark_default',
         conf={'spark.master': 'spark://spark-master:7077'}
     )
 
-    run_spark_job_df >> run_spark_job_rdd
+
+    run_spark_job_df >> run_spark_job_RDD
