@@ -5,7 +5,6 @@ import logging
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, avg, min, max, sum, count, when, round
 
-# Configurazione del logging per garantire la visibilità in Airflow/Docker
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -23,12 +22,9 @@ paths_to_read = [
     ]
 
 if __name__ == "__main__":
-    # 1. Avvio del cronometro globale (include il tempo di avvio del cluster)
-    start_time_script = time.time()
-
     # Inizializzazione della Sessione
     spark = SparkSession.builder \
-        .appName("Query_1_AA_DL_Performance") \
+        .appName("Query_1_DF_Performance") \
         .getOrCreate()
 
     # Silenziamo i log di INFO di Spark per vedere chiaramente i nostri log applicativi
@@ -37,7 +33,6 @@ if __name__ == "__main__":
     logging.info("Inizio lettura e processamento Query 1...")
     all_times = []
 
-    # 2. Avvio del cronometro specifico per la query (solo I/O e calcolo)
     for i in range(0, 10):
         start_time_query = time.time()
 
@@ -79,7 +74,6 @@ if __name__ == "__main__":
                 .mode("overwrite") \
                 .save()
 
-        # 3. Stop del cronometro specifico
         end_time = time.time()
         exec_time = end_time - start_time_query
         all_times.append(exec_time)
@@ -90,9 +84,6 @@ if __name__ == "__main__":
     logging.info("-" * 50)
     logging.info("-" * 50)
 
-
-    # Stop del cronometro globale
-    end_time_script = time.time()
     logging.info(f"Tempo medio di esecuzione: {avg_time:.4f} secondi")
 
 

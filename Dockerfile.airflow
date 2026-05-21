@@ -31,9 +31,10 @@ USER airflow
 ARG PYTHON_VERSION=3.12
 ARG AIRFLOW_VERSION=2.10.2
 
-# Installiamo tutto in un colpo solo senza aggiornare pip
 RUN pip install --no-cache-dir \
     "nipyapi" \
     "apache-airflow-providers-apache-hdfs" \
     "apache-airflow-providers-apache-spark" \
+    "tdigest" \
     --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
+

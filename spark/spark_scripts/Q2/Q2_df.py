@@ -24,12 +24,9 @@ paths_to_read = [
     ]
 
 if __name__ == "__main__":
-    # 1. Avvio del cronometro globale (include il tempo di avvio del cluster)
-    start_time_script = time.time()
-
     # Inizializzazione della Sessione
     spark = SparkSession.builder \
-        .appName("Query_2_AA_DL_Performance") \
+        .appName("Query_2_DF_Performance") \
         .getOrCreate()
 
     # Silenziamo i log di INFO di Spark per vedere chiaramente i nostri log applicativi
@@ -101,10 +98,6 @@ if __name__ == "__main__":
     logging.info("-" * 50)
     logging.info("-" * 50)
 
-
-    # Stop del cronometro globale
-    end_time_script = time.time()
     logging.info(f"Tempo medio di esecuzione: {avg_time:.4f} secondi")
-
 
     spark.stop()

@@ -19,10 +19,10 @@ RUN apt-get update && \
     make -j$(nproc) && \
     make altinstall && \
     cd .. && rm -rf Python-3.12.0 Python-3.12.0.tgz && \
-    # altinstall mette il binario in /usr/local/bin, non /usr/bin
     ln -sf /usr/local/bin/python3.12 /usr/bin/python3.12 && \
     ln -sf /usr/local/bin/python3.12 /usr/bin/python3 && \
     ln -sf /usr/local/bin/python3.12 /usr/bin/python && \
+    python3.12 -m pip install tdigest && \
     rm -rf /var/lib/apt/lists/*
 
 ENV PYSPARK_PYTHON=/usr/local/bin/python3.12

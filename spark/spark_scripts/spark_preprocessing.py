@@ -22,9 +22,6 @@ for c in colonne_cause:
         when(col("ARR_DELAY") < 15, 0).otherwise(coalesce(col(c), lit(0)))
     )
 
-# Estrazione fascia oraria da CRS_DEP_TIME (formato HHMM → ora intera)
-df = df.withColumn("hour", (col("CRS_DEP_TIME") / 100).cast(IntegerType()))
-
 # Scrittura Parquet partizionato per mese
 df.write \
     .mode("overwrite") \

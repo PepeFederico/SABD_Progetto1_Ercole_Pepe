@@ -95,7 +95,7 @@ if __name__ == "__main__":
     start_time_script = time.time()
 
     spark = SparkSession.builder \
-        .appName("Query_1_AA_DL_Performance_RDD") \
+        .appName("Query_1_RDD_Performance_RDD") \
         .getOrCreate()
 
     sc = spark.sparkContext
@@ -141,7 +141,7 @@ if __name__ == "__main__":
             final_df.coalesce(1).write.mode("overwrite").csv(output_path, header=True)
         else:
             df_from_rdd = spark.createDataFrame(final_rdd)
-            df_from_rdd.coalesce(1).write.format("noop").mode("overwrite").csv(output_path, header=True)
+            df_from_rdd.coalesce(1).write.format("noop").mode("overwrite").save()
 
         end_time = time.time()
         exec_time = end_time - start_time_query
