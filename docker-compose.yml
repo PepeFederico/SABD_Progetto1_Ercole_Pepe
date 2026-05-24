@@ -194,6 +194,38 @@ services:
     deploy:
       replicas: 3
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - hdfs_network
+    volumes:
+      - ./redis/properties.conf:/usr/local/etc/redis/properties.conf
+      - ./redis/data:/data
+    command: redis-server /usr/local/etc/redis/properties.conf
+    restart: always
+
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    user: "472"
+    environment:
+      - GF_INSTALL_PLUGINS=redis-datasource
+    networks:
+      - hdfs_network
+    volumes:
+       - ./grafana/grafana.ini:/etc/grafana/grafana.ini
+       - ./grafana/data:/var/lib/grafana
+       - ./grafana/provisioning/datasources/redis.yaml:/etc/grafana/provisioning/datasources/redis.yaml
+    depends_on:
+      - redis
+    restart: always
+
 networks:
   hdfs_network:
     driver: bridge

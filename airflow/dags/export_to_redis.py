@@ -11,25 +11,18 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 with DAG(
-        'first_query',
+        'export_to_redis',
         start_date=datetime(2024, 1, 1),
         schedule_interval=None,
         catchup=False,
         default_args={'retries': 0}
 ) as dag:
 
-    run_spark_job_df = SparkSubmitOperator(
-        task_id='query1_df',
-        application='/opt/spark/scripts/Q1/Q1_df.py',
+    export_job = SparkSubmitOperator(
+        task_id='export_to_redis',
+        application='/opt/spark/scripts/export_to_redis.py',
         conn_id='spark_default',
+        packages="com.redislabs:spark-redis_2.12:3.1.0",
         conf={'spark.master': 'spark://spark-master:7077'}
     )
-
-    run_spark_job_rdd = SparkSubmitOperator(
-        task_id='query1_rdd',
-        application='/opt/spark/scripts/Q1/Q1_RDD.py',
-        conn_id='spark_default',
-        conf={'spark.master': 'spark://spark-master:7077'}
-    )
-
-    run_spark_job_df >> run_spark_job_rdd
+    export_job
