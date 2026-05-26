@@ -122,7 +122,7 @@ services:
       networks:
         - hdfs_network
 
-    #Serve per inizializzare il database
+
   airflow-init:
       build:
         context: .
@@ -202,14 +202,10 @@ services:
     networks:
       - hdfs_network
     environment:
-      # Questa variabile passa gli argomenti al server in modo sicuro, mantenendo attivi i moduli
       - REDIS_ARGS=--requirepass qwertyuiopo1
     volumes:
-      # Manteniamo solo il volume per i dati, rimuoviamo quello del file .conf
       - ./redis/data:/data
     restart: always
-    # Abbiamo rimosso la riga 'command:'
-
 
   grafana:
     image: grafana/grafana:latest
