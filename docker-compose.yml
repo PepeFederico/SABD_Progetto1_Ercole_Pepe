@@ -195,17 +195,20 @@ services:
       replicas: 3
 
   redis:
-    image: redis:7-alpine
+    image: redis/redis-stack-server:latest
     container_name: redis
     ports:
       - "6379:6379"
     networks:
       - hdfs_network
+    environment:
+      # Questa variabile passa gli argomenti al server in modo sicuro, mantenendo attivi i moduli
+      - REDIS_ARGS=--requirepass qwertyuiopo1
     volumes:
-      - ./redis/properties.conf:/usr/local/etc/redis/properties.conf
+      # Manteniamo solo il volume per i dati, rimuoviamo quello del file .conf
       - ./redis/data:/data
-    command: redis-server /usr/local/etc/redis/properties.conf
     restart: always
+    # Abbiamo rimosso la riga 'command:'
 
 
   grafana:

@@ -1,14 +1,12 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, concat_ws, to_json, struct
-
+from pyspark.sql.functions import col, concat_ws, to_json, struct, row_number
+from pyspark.sql.window import Window
 
 def process_q1(spark, hdfs_base_path):
     print("\n=== [START] Elaborazione QUERY 1 (Metriche Mensili) ===")
-    # Lettura ricorsiva di tutti i file nella cartella Q1
     path = f"{hdfs_base_path}/q1_output/df/*.csv"
     df = spark.read.csv(path, header=True, inferSchema=True)
 
-    # Rinominiamo le colonne complesse per evitare spazi nei campi JSON
     df_clean = df.withColumnRenamed("Compagnia Aerea", "compagnia") \
         .withColumnRenamed("Mese", "mese") \
         .withColumnRenamed("Ritardo Medio Partenza (min)", "ritardo_medio_part") \
@@ -16,10 +14,9 @@ def process_q1(spark, hdfs_base_path):
         .withColumnRenamed("Ritardo Massimo Partenza (min)", "ritardo_max_part") \
         .withColumnRenamed("Percentuale voli cancellati", "perc_cancellati")
 
-    # Chiave composita -> q1:mese:compagnia  (es. q1:1:AA)
+    # Chiave composita -> q1:compagnia:mese
     df_redis = df_clean.withColumn("key", concat_ws(":", col("compagnia"), col("mese")))
 
-    # Scrittura su Redis come Stringa JSON (tabella logica: q1)
     df_redis.write \
         .format("org.apache.spark.sql.redis") \
         .option("key.column", "key") \
@@ -34,7 +31,6 @@ def process_q2(spark, hdfs_base_path):
     path = f"{hdfs_base_path}/q2_output/df/*.csv"
     df = spark.read.csv(path, header=True, inferSchema=True)
 
-    # Pulizia nomi colonne per il JSON
     df_clean = df.withColumnRenamed("Compagnia Aerea", "compagnia") \
         .withColumnRenamed("Numero di voli", "num_voli") \
         .withColumnRenamed("Ritardo Medio Arrivo (min)", "ritardo_medio_arr") \
@@ -44,16 +40,18 @@ def process_q2(spark, hdfs_base_path):
         .withColumnRenamed("Ritardo Medio Sicurezza (min)", "ritardo_sicurezza") \
         .withColumnRenamed("Ritardo Medio dovuto a voluto precedente (min)", "ritardo_volo_precedente")
 
-    # Chiave singola -> q2:compagnia (es. q2:OH)
-    df_redis = df_clean.withColumn("key", col("compagnia"))
+    window_spec = Window.orderBy(col("ritardo_medio_arr").desc())
+    df_ranked = df_clean.withColumn("posizione", row_number().over(window_spec))
 
-    # Scrittura su Redis (tabella logica: q2)
+    # Chiave q2:posizione_classifica
+    df_redis = df_ranked.withColumn("key", col("posizione").cast("string"))
     df_redis.write \
         .format("org.apache.spark.sql.redis") \
         .option("key.column", "key") \
         .option("table", "q2") \
-        .mode("append") \
+        .mode("overwrite") \
         .save()
+
     print("=== [END] QUERY 2 completata con successo ===")
 
 
@@ -62,18 +60,23 @@ def process_q3_P(spark, hdfs_base_path):
     path = f"{hdfs_base_path}/q3_output/df/percentiles/*.csv"
     df = spark.read.csv(path, header=True, inferSchema=True)
 
-    # Chiave composita -> q3:compagnia:fascia_oraria (es. q3:UA:12)
-    df_redis = df.withColumn("key", concat_ws(":", col("Compagnia_Aerea"), col("Fascia_oraria")))
+    df_clean = df.withColumnRenamed("Compagnia_Aerea", "compagnia") \
+        .withColumnRenamed("Fascia oraria", "fascia_oraria") \
+        .withColumnRenamed("25th percentile", "percentile_25") \
+        .withColumnRenamed("50th percentile", "percentile_50") \
+        .withColumnRenamed("75th_percentile", "percentile_75") \
+        .withColumnRenamed("90th percentile", "percentile_90")
 
-    # Scrittura su Redis (tabella logica: q3)
+    # Chiave composita -> q3_p:compagnia:fascia_oraria
+    df_redis = df_clean.withColumn("key", concat_ws(":", col("compagnia"), col("fascia_oraria")))
+
     df_redis.write \
         .format("org.apache.spark.sql.redis") \
         .option("key.column", "key") \
         .option("table", "q3_p") \
         .mode("append") \
         .save()
-    print("=== [END] QUERY 3 completata con successo ===")
-
+    print("=== [END] QUERY 3 Percentili completata ===")
 
 
 def process_q3_MM(spark, hdfs_base_path):
@@ -81,23 +84,24 @@ def process_q3_MM(spark, hdfs_base_path):
     path = f"{hdfs_base_path}/q3_output/df/MinMax/*.csv"
     df = spark.read.csv(path, header=True, inferSchema=True)
 
-    df_clean = df.withColumnRenamed("Ritardo Minimo Partenza (Min)", "Ritardo_Partenza_Minimo") \
-        .withColumnRenamed("Ritardo Massimo Partenza (Min)", "Ritardo_Partenza_Massimo")
+    df_clean = df.withColumnRenamed("Compagnia_Aerea", "compagnia") \
+        .withColumnRenamed("Compagnia Aerea", "compagnia") \
+        .withColumnRenamed("Ritardo Minimo Partenza (Min)", "ritardo_min_partenza") \
+        .withColumnRenamed("Ritardo Massimo Partenza (Min)", "ritardo_max_partenza")
 
-    df_redis = df_clean.withColumn("key", col("Compagnia_Aerea"))
+    # Chiave singola -> q3_mm:compagnia
+    df_redis = df_clean.withColumn("key", col("compagnia"))
 
-    # Scrittura su Redis (tabella logica: q3)
     df_redis.write \
         .format("org.apache.spark.sql.redis") \
         .option("key.column", "key") \
         .option("table", "q3_mm") \
         .mode("append") \
         .save()
-    print("=== [END] QUERY 3 completata con successo ===")
+    print("=== [END] QUERY 3 MinMax completata con successo ===")
 
 
 if __name__ == "__main__":
-    # Inizializzazione dell'unica SparkSession per l'intero ciclo di vita dell'applicazione
     spark = SparkSession.builder \
         .appName("HDFS-Multiple-Queries-To-Redis") \
         .config("spark.redis.host", "redis") \
@@ -105,7 +109,6 @@ if __name__ == "__main__":
         .config("spark.redis.auth", "qwertyuiopo1") \
         .getOrCreate()
 
-    # Base path di HDFS sfruttando l'host e la porta RPC definiti nel tuo docker-compose
     HDFS_BASE = "hdfs://namenode:9000/data/results"
 
     try:
