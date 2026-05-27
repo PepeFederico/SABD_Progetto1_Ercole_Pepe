@@ -78,8 +78,6 @@ if __name__ == "__main__":
             "Ritardo Massimo Partenza (Min)",
         ).orderBy(col("Compagnia_Aerea")))
 
-        end_time_before = time.time()
-
         # Azione: Scrittura in CSV
         if i == 9:
             q1_result_1.coalesce(1) \
@@ -102,7 +100,7 @@ if __name__ == "__main__":
                 .mode("overwrite") \
                 .save()
 
-        # 3. Stop del cronometro specifico
+        df_clean.unpersist()
         end_time = time.time()
         exec_time = end_time - start_time_query
         all_times.append(exec_time)

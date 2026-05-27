@@ -138,6 +138,7 @@ if __name__ == "__main__":
                     and float(row["CANCELLED"]) == 0.0
             )
         )
+        rdd_filtered.cache()
 
         # 2. Pipeline RDD (Trasformazioni)
         final_rdd_1 = (
@@ -170,6 +171,7 @@ if __name__ == "__main__":
             final_df_2 = spark.createDataFrame(final_rdd_2)
             final_df_2.coalesce(1).write.format("noop").mode("overwrite").save()
 
+        rdd_filtered.unpersist()
         end_time = time.time()
         exec_time = end_time - start_time_query
         all_times.append(exec_time)
