@@ -32,4 +32,11 @@ with DAG(
         conf={'spark.master': 'spark://spark-master:7077'}
     )
 
-    run_spark_job_df >> run_spark_job_rdd
+    run_spark_job_rdd_o = SparkSubmitOperator(
+        task_id='query3_rdd_optimized',
+        application='/opt/spark/scripts/Q3/Q3_RDD_optimized.py',
+        conn_id='spark_default',
+        conf={'spark.master': 'spark://spark-master:7077'}
+    )
+
+    run_spark_job_df >> run_spark_job_rdd >> run_spark_job_rdd_o
