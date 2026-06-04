@@ -32,5 +32,12 @@ with DAG(
         conf={'spark.master': 'spark://spark-master:7077'}
     )
 
+    run_spark_job_rdd_o = SparkSubmitOperator(
+        task_id='query2_rdd_optimized',
+        application='/opt/spark/scripts/Q2/Q2_RDD_optimized.py',
+        conn_id='spark_default',
+        conf={'spark.master': 'spark://spark-master:7077'}
+    )
 
-    run_spark_job_df >> run_spark_job_RDD
+
+    run_spark_job_df >> run_spark_job_RDD >> run_spark_job_rdd_o

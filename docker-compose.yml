@@ -192,7 +192,7 @@ services:
     networks:
       - hdfs_network
     deploy:
-      replicas: 3
+      replicas: 2
 
   redis:
     image: redis/redis-stack-server:latest
